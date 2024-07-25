@@ -3,7 +3,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
 
-# Initialize Firebase Admin SDK
+
 cred = credentials.Certificate('./serviceAccountKey.json')
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://petproject-34206-default-rtdb.firebaseio.com/'
@@ -11,10 +11,7 @@ firebase_admin.initialize_app(cred, {
 
 app = Flask(__name__)
 
-# Get a reference to the database service
 db_ref = db.reference()
-
-# Endpoints for posts
 
 @app.route('/posts')
 def get_posts():
@@ -27,7 +24,6 @@ def create_post():
     """Creates a new post in the database."""
     data = request.get_json()
 
-    # 태그가 배열로 주어지지 않았다면 빈 배열로 처리
     data['tags'] = data.get('tags', [])
     db_ref.child('posts').push(data)
     return jsonify({'message': 'Post created successfully'}), 201
@@ -43,7 +39,6 @@ def update_post(post_id):
     """Updates an existing post in the database."""
     data = request.get_json()
     
-    # 태그가 배열로 주어지지 않았다면 빈 배열로 처리
     data['tags'] = data.get('tags', [])
     db_ref.child('posts').child(post_id).update(data)
     return jsonify({'message': 'Post updated successfully'}), 200
@@ -54,15 +49,12 @@ def delete_post(post_id):
     db_ref.child('posts').child(post_id).delete()
     return jsonify({'message': 'Post deleted successfully'}), 200
 
-# Endpoints for tags
 
 @app.route('/posts/tags/<tag>')
 def get_posts_by_tag(tag):
     """Retrieves posts associated with a specific tag."""
     posts = db_ref.child('posts').order_by_child('tags').equal_to(tag).get()
     return jsonify(posts)
-
-# Endpoints for favorite tags
 
 @app.route('/users/<user_id>/favorite-tags', methods=['GET'])
 def get_favorite_tags(user_id):
@@ -82,8 +74,6 @@ def remove_favorite_tag(user_id, tag):
     """Removes a favorite tag for a user."""
     db_ref.child('users').child(user_id).child('favoriteTags').child(tag).delete()
     return jsonify({'message': 'Favorite tag removed successfully'}), 200
-
-# Endpoints for comments
 
 @app.route('/posts/<post_id>/comments')
 def get_comments(post_id):
@@ -111,8 +101,6 @@ def delete_comment(post_id, comment_id):
     db_ref.child('posts').child(post_id).child('comments').child(comment_id).delete()
     return jsonify({'message': 'Comment deleted successfully'}), 200
 
-# Endpoints for replies
-
 @app.route('/posts/<post_id>/comments/<comment_id>/replies')
 def get_replies(post_id, comment_id):
     """Retrieves replies for a specific comment."""
@@ -138,8 +126,6 @@ def delete_reply(post_id, comment_id, reply_id):
     """Deletes a specific reply from a comment."""
     db_ref.child('posts').child(post_id).child('comments').child(comment_id).child('replies').child(reply_id).delete()
     return jsonify({'message': 'Reply deleted successfully'}), 200
-
-# Endpoint for accepting a comment
 
 @app.route('/posts/<post_id>/comments/<comment_id>/accept', methods=['POST'])
 def accept_comment(post_id, comment_id):
